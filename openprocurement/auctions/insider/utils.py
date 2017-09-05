@@ -17,7 +17,6 @@ from datetime import timedelta
 
 PKG = get_distribution(__package__)
 LOGGER = getLogger(PKG.project_name)
-DUTCH_PERIOD = timedelta(0, 18000)
 
 
 def generate_participation_url(request, bid_id):
@@ -55,10 +54,9 @@ def check_auction_status(request):
 def check_status(request):
     auction = request.validated['auction']
     now = get_now()
-    start_after = calculate_business_date(auction.tenderPeriod.endDate, -DUTCH_PERIOD, auction)
     for award in auction.awards:
         check_award_status(request, award, now)
-    if auction.status == 'active.tendering' and start_after <= now:
+    if auction.status == 'active.tendering' and auction.enquiryPeriod.endDate <= now:
         LOGGER.info('Switched auction {} to {}'.format(auction['id'], 'active.auction'),
                     extra=context_unpack(request, {'MESSAGE_ID': 'switched_auction_active.auction'}))
         auction.status = 'active.auction'
