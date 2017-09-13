@@ -10,7 +10,7 @@ from openprocurement.api.models import (
     Model, ListType
 )
 from openprocurement.api.utils import calculate_business_date
-from openprocurement.api.models import TZ, get_now, SANDBOX_MODE, Value, Period
+from openprocurement.api.models import TZ, get_now, SANDBOX_MODE, Value, Period, URLType
 from openprocurement.auctions.core.models import IAuction
 from openprocurement.auctions.flash.models import calc_auction_end_time
 from openprocurement.auctions.dgf.models import (
@@ -22,7 +22,7 @@ from openprocurement.auctions.dgf.models import (
     rounding_shouldStartAfter,
 )
 
-from openprocurement.auctions.insider.utils import generate_participation_url
+from openprocurement.auctions.insider.utils import generate_url
 
 
 DUTCH_PERIOD = timedelta(hours=5)
@@ -73,7 +73,7 @@ class Bid(BaseBid):
     def participation_url(self):
         if not self.participationUrl and self.status != "draft":
             request = get_auction(self).__parent__.request
-            url = generate_participation_url(request, self.id)
+            url = generate_url(request, bid_id=self.id)
             return url
 
 
@@ -104,6 +104,15 @@ class Auction(BaseAuction):
     @serializable(serialized_name="minimalStep", type=ModelType(Value))
     def auction_minimalStep(self):
         return Value(dict(amount=0))
+
+
+    @serializable(serialized_name="auctionUrl", serialize_when_none=False)
+    def auction_url(self):
+        if not self.auctionUrl and self.status != "draft" and self.id:
+            root = self.__parent__
+            request = root.request
+            url = generate_url(request, auction_id=self.id)
+            return url
 
     # @serializable(serialized_name="tenderPeriod", type=ModelType(Period))
     # def tender_Period(self):

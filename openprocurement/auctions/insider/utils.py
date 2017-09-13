@@ -17,11 +17,13 @@ PKG = get_distribution(__package__)
 LOGGER = getLogger(PKG.project_name)
 
 
-def generate_participation_url(request, bid_id):
+def generate_url(request, bid_id=None, auction_id=None):
     auction_module_url = request.registry.auction_module_url
-    auction_id = request.validated['auction_id']
-    signature = quote(b64encode(request.registry.signer.signature(bid_id)))
-    return '{}/auctions/{}/login?bidder_id={}&signature={}'.format(auction_module_url, auction_id, bid_id, signature)
+    if bid_id:
+        auction_id = request.validated['auction_id']
+        signature = quote(b64encode(request.registry.signer.signature(bid_id)))
+        return '{}/auctions/{}/login?bidder_id={}&signature={}'.format(auction_module_url, auction_id, bid_id, signature)
+    return '{}/auctions/{}'.format(auction_module_url, auction_id)
 
 
 def check_bids(request):
